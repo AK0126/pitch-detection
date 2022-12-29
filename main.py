@@ -2,7 +2,18 @@
 
 import sys
 import aubio
-import numpy as np
+# import numpy as np
+import subprocess
+
+def to_lilypond_format(note_list):
+    suffixes = {'2':',', '3':'', '4':'\'', '5':'\'\''}
+    formatted_notes = []
+    formatted_notes.append('{\n')
+    formatted_notes.append('\\clef bass \n')
+    for note in note_list:
+        formatted_notes.append(note[0].lower() + suffixes[note[1]])
+    formatted_notes.append('\n}')
+    return " ".join(formatted_notes)
 
 def main():
     if len(sys.argv) < 2:
@@ -39,7 +50,7 @@ def main():
     while True:
         samples, read = s()
         test = pitch_o(samples)
-        print(test)
+        #print(test)
         pitch = test[0]
         #pitch = int(round(pitch))
         confidence = pitch_o.get_confidence()
@@ -68,6 +79,14 @@ def main():
         if read < hop_s: break
 
     print(notes)
+    f_notes = to_lilypond_format(notes)
+    print(f_notes)
+    with open("out.ly", "w") as out_file:
+        subprocess.run(["printf", "%s", f_notes], stdout=out_file)
+    subprocess.run(["lilypond", "out.ly"])
+    #subprocess.run(["rm", "out.ly"])
+    #subprocess.run(["echo", f_notes, ">", "out.ly", "&&", "lilypond", "out.ly", "&&", "rm", "out.ly"])
+    
 
 
 if __name__ == "__main__":
